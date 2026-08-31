@@ -1,20 +1,21 @@
 function result = ec25116031(fileName)
-%SPICE_SOLVER Simple DC circuit solver using Modified Nodal Analysis (MNA).
-%
-% Netlist format (one element per line):
-%   Rname  n+  n-  resistance
-%   Iname  n+  n-  current
-%   Vname  n+  n-  voltage
-%   Gname  n+  n-  nc+ nc- transconductance   (VCCS)
-%   Ename  n+  n-  nc+ nc- voltage_gain       (VCVS)
-%   Fname  n+  n-  Vcontrol current_gain      (CCCS)
-%   Hname  n+  n-  Vcontrol transresistance   (CCVS)
-%   Oname  out ref noninv inv                 (ideal op-amp)
-%
-% Node 0/gnd/ground = ground. Current flows n+ to n-.
-%
-% For F and H elements, Vcontrol must be the name of an independent
-% voltage source. A zero-volt voltage source may be used to sense current.
+%{ 
+    SPICE_SOLVER Simple DC circuit solver using Modified Nodal Analysis (MNA).
+
+ Netlist format (one element per line):
+   Rname  n+  n-  resistance
+   Iname  n+  n-  current
+   Vname  n+  n-  voltage
+   Gname  n+  n-  nc+ nc- transconductance   (VCCS)
+   Ename  n+  n-  nc+ nc- voltage_gain       (VCVS)
+   Fname  n+  n-  Vcontrol current_gain      (CCCS)
+   Hname  n+  n-  Vcontrol transresistance   (CCVS)
+   Oname  out ref noninv inv                 (ideal op-amp)
+
+ Node 0/gnd/ground = ground. Current flows n+ to n-.
+
+ For F and H elements, Vcontrol must be the name of an independent voltage source. A zero-volt voltage source may be used to sense current. 
+ %}
 
     txt = fileread(fileName);
     lines = regexp(txt, '\r\n|\n|\r', 'split');
@@ -71,7 +72,6 @@ function result = ec25116031(fileName)
         els(end + 1) = e; %#ok<AGROW>
     end
 
-    % Collect unique non-ground node names, in order of first appearance.
     nodeNames = {};
     nodeMap = containers.Map('KeyType', 'char', 'ValueType', 'double');
 
@@ -91,12 +91,11 @@ function result = ec25116031(fileName)
         error('The circuit has %d non-ground nodes; the maximum is 40.', numNodes);
     end
 
-    % V/E/H/O elements each add one branch-current unknown.
+    % V/E/H/O elements each add one branch-current unknown
     curMap = containers.Map('KeyType', 'char', 'ValueType', 'double');
     curNames = {};
 
-    % Tracks only independent V sources, so F/H can be validated against
-    % this instead of curMap (which also holds E/H/O current indices).
+    %{ Tracks only independent V sources, so F/H can be use this instead of curMap (which also holds E/H/O current indices).%}
     vSourceMap = containers.Map('KeyType', 'char', 'ValueType', 'double');
 
     for k = 1:numel(els)
@@ -113,7 +112,7 @@ function result = ec25116031(fileName)
     A = zeros(N, N);
     z = zeros(N, 1);
 
-    % Stamp each element into A*x = z.
+    % Add each element into A*x = z.
     for k = 1:numel(els)
         it = els(k);
         n = zeros(1, numel(it.nodes));
@@ -225,7 +224,6 @@ function num = nodeNum(nodeMap, nd)
     end
 end
 
-% Stamp a two-terminal admittance (e.g. resistor conductance) between p and m.
 function M = stamp2(M, p, m, val)
     M = addA(M, p, p,  val);
     M = addA(M, p, m, -val);
@@ -233,7 +231,6 @@ function M = stamp2(M, p, m, val)
     M = addA(M, m, m,  val);
 end
 
-% Stamp a branch-current unknown qi flowing p -> m.
 function M = stampBranch(M, p, m, qi)
     M = addA(M, p, qi,  1);
     M = addA(M, m, qi, -1);

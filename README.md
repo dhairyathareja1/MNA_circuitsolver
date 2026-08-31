@@ -23,6 +23,10 @@ This is a basic DC circuit solver made in MATLAB. It uses Modified Nodal Analysi
 result = ec25116031('example.cir');
 ```
 
+```matlab
+result.A
+```
+
 ## Resource Used
 
 - https://www.mathworks.com/help/matlab/ref/double.mldivide.html

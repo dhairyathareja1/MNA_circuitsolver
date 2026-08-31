@@ -1,6 +1,6 @@
 function result = ec25116031(fileName)
 %{ 
-    SPICE_SOLVER Simple DC circuit solver using Modified Nodal Analysis (MNA).
+    Simple DC circuit solver using Modified Nodal Analysis (MNA).
 
  Netlist format (one element per line):
    Rname  n+  n-  resistance

@@ -29,7 +29,7 @@ function result = ec25116031(fileName)
             continue;
         end
 
-        cPos = regexp(line, '[#%]', 'once');   % strip inline comment
+        cPos = regexp(line, '[#%]', 'once');   % remove inline comment
         if ~isempty(cPos)
             line = strtrim(line(1:cPos - 1));
         end
@@ -88,14 +88,14 @@ function result = ec25116031(fileName)
 
     numNodes = numel(nodeNames);
     if numNodes > 40
-        error('The circuit has %d non-ground nodes; the maximum is 40.', numNodes);
+        error('The circuit has %d non ground nodes but the maximum is 40.', numNodes);
     end
 
-    % V/E/H/O elements each add one branch-current unknown
+    % V/E/H/O elements each add one branch current unknown
     curMap = containers.Map('KeyType', 'char', 'ValueType', 'double');
     curNames = {};
 
-    %{ Tracks only independent V sources, so F/H can be use this instead of curMap (which also holds E/H/O current indices).%}
+    %{ Tracks only independent V sources so F/H can be use this instead of curMap (which also holds E/H/O current indices).%}
     vSourceMap = containers.Map('KeyType', 'char', 'ValueType', 'double');
 
     for k = 1:numel(els)
@@ -112,7 +112,7 @@ function result = ec25116031(fileName)
     A = zeros(N, N);
     z = zeros(N, 1);
 
-    % Add each element into A*x = z.
+    % Add each element into A*x = z
     for k = 1:numel(els)
         it = els(k);
         n = zeros(1, numel(it.nodes));
@@ -150,9 +150,7 @@ function result = ec25116031(fileName)
 
             case 'F'                     % CCCS
                 if ~isKey(vSourceMap, it.control)
-                    error(['%s is controlled by "%s", but F must be ' ...
-                           'controlled by an independent V source.'], ...
-                          it.name, it.control);
+                    error(['%s is controlled by "%s", but F must be controlled by an independent V source.'], it.name, it.control);                              
                 end
                 qc = vSourceMap(it.control);
                 gain = it.value;
@@ -162,9 +160,7 @@ function result = ec25116031(fileName)
             case 'H'                     % CCVS
                 q = curMap(it.name);
                 if ~isKey(vSourceMap, it.control)
-                    error(['%s is controlled by "%s", but H must be ' ...
-                           'controlled by an independent V source.'], ...
-                          it.name, it.control);
+                    error(['%s is controlled by "%s", but H must be controlled by an independent V source.'],it.name, it.control);
                 end
                 qc = vSourceMap(it.control);
                 A = stampBranch(A, n(1), n(2), q);
@@ -245,7 +241,7 @@ function v = addZ(v, row, val)
 end
 
 function M = addA(M, row, col, val)
-    if row ~= 0 && col ~= 0            % ground (index 0) gets no entry
+    if row ~= 0 && col ~= 0            % ground (index 0) is removed
         M(row, col) = M(row, col) + val;
     end
 end
